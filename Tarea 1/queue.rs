@@ -1,13 +1,13 @@
-pub const STACK_SIZE: usize = 500;
+pub const QUEUE_SIZE: usize = 500;
 
-pub struct Stack {
-    values: [i32; STACK_SIZE],
+pub struct Queue {
+    values: [i32; QUEUE_SIZE],
     cant: usize
 }
 
-impl Stack {
-    pub fn new(values: [i32; STACK_SIZE]) -> Stack {
-        Stack {
+impl Queue {
+    pub fn new(values: [i32; QUEUE_SIZE]) -> Queue {
+        Queue {
             values: values,
             cant: 0
         }
@@ -21,7 +21,7 @@ impl Stack {
     }
 
     pub fn push(&mut self, value: i32) {
-        if self.cant < STACK_SIZE {
+        if self.cant < QUEUE_SIZE {
             self.values[self.cant] = value;
             self.cant += 1;
         } else {
@@ -31,7 +31,10 @@ impl Stack {
 
     pub fn pop(&mut self) {
         if self.cant > 0 {
-            self.values[self.cant - 1] = 0;
+            for n in 0..=self.cant-1 {
+                self.values[n] = self.values[n + 1];
+            }
+            self.values[self.cant] = 0;
             self.cant -= 1;
         } else {
             println!("Stack is empty");
@@ -40,7 +43,7 @@ impl Stack {
 
     pub fn front(&mut self) -> i32 {
         if self.cant > 0 {
-            return self.values[self.cant - 1];
+            return self.values[0];
         } else {
             println!("Stack is empty");
             return -1;
