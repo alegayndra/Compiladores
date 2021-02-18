@@ -1,5 +1,6 @@
 mod stack;
 mod queue;
+mod hash;
 
 fn pruebas_stack() {
     println!("\n----- Iniciando pruebas Stack -----\n");
@@ -43,7 +44,27 @@ fn pruebas_queue() {
     println!("\n----- Terminando pruebas Queue -----\n");
 }
 
+fn pruebas_hash() {
+    println!("\n----- Iniciando pruebas Hash -----\n");
+
+    let valores: [i32; queue::QUEUE_SIZE] = [-1; 500];
+    let mut hash_local = hash::Hash::new(valores);
+
+    hash_local.add("aaaa", 2);
+    hash_local.add("bbbb", 2);
+    hash_local.add("aaaa", 2);
+    hash_local.show_values();
+    hash_local.add("a", 11);
+    println!("{}", hash_local.find("aaaa"));
+    println!("{}", hash_local.find("b"));
+    hash_local.erase("aaaa");
+    hash_local.show_values();
+
+    println!("\n----- Final pruebas Hash -----\n");
+}
+
 fn main() {
     pruebas_stack();
     pruebas_queue();
+    pruebas_hash();
 }
