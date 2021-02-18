@@ -55,8 +55,8 @@ fn pruebas_hash() {
     hash_local.add("aaaa", 2);
     hash_local.show_values();
     hash_local.add("a", 11);
-    println!("{}", hash_local.find("aaaa"));
-    println!("{}", hash_local.find("b"));
+    println!("find: {}", hash_local.find("aaaa"));
+    println!("find: {}", hash_local.find("b"));
     hash_local.erase("aaaa");
     hash_local.show_values();
 

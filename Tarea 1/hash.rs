@@ -15,6 +15,7 @@ impl Hash {
     }
 
     pub fn show_values(&mut self) {
+        println!("");
         for n in 1..=HASH_SIZE-1 {
             if self.hashes[n-1] != "" {
                 println!("element {}: {} = {}", n, self.hashes[n-1], self.values[n-1]);
@@ -33,7 +34,7 @@ impl Hash {
             }
 
             if self.hashes[count] == hash {
-                println!("Hash already in use");
+                println!("Hash {} already in use: {} = {}", hash, self.values[count], value);
                 break;
             }
 
@@ -58,7 +59,7 @@ impl Hash {
             count += 1;
 
             if count >= HASH_SIZE {
-                println!("Hash not found");
+                println!("Hash not found: {}", hash);
                 val = -1;
                 break;
             }
