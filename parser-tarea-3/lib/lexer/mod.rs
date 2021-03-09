@@ -1,6 +1,6 @@
 use nom::{
     branch::alt,
-    bytes::complete::{tag, tag_no_case, take},
+    bytes::complete::{tag, tag_no_case, take, take_while},
     character::complete::{alpha1, alphanumeric1, one_of},
     combinator::opt,
     error::{context, ErrorKind, VerboseError},
@@ -38,7 +38,7 @@ pub fn semicolon(input: &str) -> Res<&str, &str> {
 pub fn space(input: &str) -> Res<&str, &str> {
     context(
         "space",
-        tag_no_case(" "),
+        take_while(|c| c == ' '),
     )(input)
     .map(|(next_input, res)| (next_input, res.into()))
 }
@@ -96,14 +96,8 @@ mod tests {
     #[test]
     fn test_space() {
         assert_eq!(space(" "), Ok(("", " ")));
-        assert_eq!(
-            space("a"),
-            Err(NomErr::Error(VerboseError {
-                errors: vec![
-                    ("a", VerboseErrorKind::Nom(ErrorKind::Tag)),
-                    ("a", VerboseErrorKind::Context("space")),
-                ]
-            }))
-        );
+        assert_eq!(space("    "), Ok(("", "    ")));
+        assert_eq!(space(""), Ok(("", "")));
+        assert_eq!(space("a"), Ok(("a", "")));
     }
 }

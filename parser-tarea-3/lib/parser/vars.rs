@@ -93,7 +93,9 @@ fn ids(input: &str) -> Res<&str, Vec<& str>> {
         tuple((
             url_code_points,
             many0(tuple((
+                space,
                 tag(","),
+                space,
                 url_code_points,
             ))),
         )),
@@ -102,7 +104,7 @@ fn ids(input: &str) -> Res<&str, Vec<& str>> {
         let mut qps = Vec::new();
         qps.push(res.0);
         for qp in res.1 {
-            qps.push(qp.1);
+            qps.push(qp.3);
         }
         (next_input, qps)
     })
@@ -164,12 +166,21 @@ mod tests {
     #[test]
     fn test_ids() {
         assert_eq!(ids("id"), Ok(("", vec!["id"])));
-        assert_eq!(ids("id, id"), Ok(("", vec!["id", "id"])));
+        assert_eq!(ids("id, abr"), Ok(("", vec!["id", "abr"])));
+        // assert_eq!(
+        //     ids("id, "),
+        //     Err(NomErr::Error(VerboseError {
+        //         errors: vec![
+        //             ("id, ", VerboseErrorKind::Nom(ErrorKind::Tag)),
+        //             ("id, ", VerboseErrorKind::Context("ids")),
+        //         ]
+        //     })) 
+        // );
         assert_eq!(
             ids(":"),
             Err(NomErr::Error(VerboseError {
                 errors: vec![
-                    (":", VerboseErrorKind::Nom(ErrorKind::Tag)),
+                    (":", VerboseErrorKind::Nom(ErrorKind::AlphaNumeric)),
                     (":", VerboseErrorKind::Context("ids")),
                 ]
             }))
@@ -192,52 +203,18 @@ mod tests {
             ))
         );
 
-        // assert_eq!(
-        //     uri("http://localhost"),
-        //     Ok((
-        //         "",
-        //         URI {
-        //             scheme: Scheme::HTTP,
-        //             authority: None,
-        //             host: Host::HOST("localhost".to_string()),
-        //             port: None,
-        //             path: None,
-        //             query: None,
-        //             fragment: None
-        //         }
-        //     ))
-        // );
-
-        // assert_eq!(
-        //     uri("https://www.zupzup.org:443/about/?someVal=5#anchor"),
-        //     Ok((
-        //         "",
-        //         URI {
-        //             scheme: Scheme::HTTPS,
-        //             authority: None,
-        //             host: Host::HOST("www.zupzup.org".to_string()),
-        //             port: Some(443),
-        //             path: Some(vec!["about"]),
-        //             query: Some(vec![("someVal", "5")]),
-        //             fragment: Some("anchor")
-        //         }
-        //     ))
-        // );
-
-        // assert_eq!(
-        //     uri("http://user:pw@127.0.0.1:8080"),
-        //     Ok((
-        //         "",
-        //         URI {
-        //             scheme: Scheme::HTTP,
-        //             authority: Some(("user", Some("pw"))),
-        //             host: Host::IP([127, 0, 0, 1]),
-        //             port: Some(8080),
-        //             path: None,
-        //             query: None,
-        //             fragment: None
-        //         }
-        //     ))
-        // );
+        assert_eq!(
+            vars("var variable, id, aaaa : float ;"),
+            Ok((
+                "",
+                VARS {
+                    varter: "var",
+                    ids: vec!["variable" ,"id", "aaaa"],
+                    colon: ":",
+                    tipo: Tipo::FLOAT,
+                    semicolon: ";",
+                }
+            ))
+        );
     }
 }
