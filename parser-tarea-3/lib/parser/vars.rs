@@ -1,12 +1,16 @@
 use nom::{
     branch::alt,
-    bytes::complete::{tag, tag_no_case, take},
-    character::complete::{alpha1, alphanumeric1, one_of},
-    combinator::opt,
-    error::{context, ErrorKind, VerboseError},
-    multi::{count, many0, many1, many_m_n},
-    sequence::{preceded, separated_pair, terminated, tuple},
-    AsChar, Err as NomErr, IResult, InputTakeAtPosition,
+    // bytes::complete::{tag, tag_no_case, take},
+    bytes::complete::tag_no_case,
+    // character::complete::{alpha1, alphanumeric1, one_of},
+    // combinator::opt,
+    // error::{context, ErrorKind, VerboseError},
+    error::{context, VerboseError},
+    // multi::{count, many0, many1, many_m_n},
+    // sequence::{preceded, separated_pair, terminated, tuple},
+    sequence::tuple,
+    // AsChar, Err as NomErr, IResult, InputTakeAtPosition,
+    IResult,
 };
 
 use crate::lexer::*;
@@ -18,11 +22,11 @@ type Res<T, U> = IResult<T, U, VerboseError<T>>;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct VARS<'a> {
-    varter: &'a str,
-    ids: Vec<&'a str>,
-    colon: &'a str,
-    tipo: Tipo,
-    semicolon: &'a str,
+    pub varter: &'a str,
+    pub ids: Vec<&'a str>,
+    pub colon: &'a str,
+    pub tipo: Tipo,
+    pub semicolon: &'a str,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -87,39 +91,6 @@ pub fn vars(input: &str) -> Res<&str, VARS> {
     })
 }
 
-fn ids(input: &str) -> Res<&str, Vec<& str>> {
-    context(
-        "ids",
-        tuple((
-            url_code_points,
-            many0(tuple((
-                space,
-                tag(","),
-                space,
-                url_code_points,
-            ))),
-        )),
-    )(input)
-    .map(|(next_input, res)| {
-        let mut qps = Vec::new();
-        qps.push(res.0);
-        for qp in res.1 {
-            qps.push(qp.3);
-        }
-        (next_input, qps)
-    })
-}
-
-fn url_code_points(input: &str) -> Res<&str, &str> {
-    input.split_at_position1_complete(
-        |item| {
-            let char_item = item.as_char();
-            !(char_item == '-') && !char_item.is_alphanum() && !(char_item == '.')
-        },
-        ErrorKind::AlphaNumeric,
-    )
-}
-
 #[cfg(test)]
 mod tests {
     // #[test]
@@ -158,30 +129,6 @@ mod tests {
                 errors: vec![
                     ("a", VerboseErrorKind::Nom(ErrorKind::Tag)),
                     ("a", VerboseErrorKind::Context("varter")),
-                ]
-            }))
-        );
-    }
-
-    #[test]
-    fn test_ids() {
-        assert_eq!(ids("id"), Ok(("", vec!["id"])));
-        assert_eq!(ids("id, abr"), Ok(("", vec!["id", "abr"])));
-        // assert_eq!(
-        //     ids("id, "),
-        //     Err(NomErr::Error(VerboseError {
-        //         errors: vec![
-        //             ("id, ", VerboseErrorKind::Nom(ErrorKind::Tag)),
-        //             ("id, ", VerboseErrorKind::Context("ids")),
-        //         ]
-        //     })) 
-        // );
-        assert_eq!(
-            ids(":"),
-            Err(NomErr::Error(VerboseError {
-                errors: vec![
-                    (":", VerboseErrorKind::Nom(ErrorKind::AlphaNumeric)),
-                    (":", VerboseErrorKind::Context("ids")),
                 ]
             }))
         );

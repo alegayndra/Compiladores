@@ -1,9 +1,9 @@
 extern crate duck_lib;
-#[macro_use]
+// #[macro_use]
 extern crate nom;
 
-use nom::*;
-use duck_lib::lexer::*;
+// use nom::*;
+// use duck_lib::lexer::*;
 
 fn main() {
     println!("Hello, world!");
