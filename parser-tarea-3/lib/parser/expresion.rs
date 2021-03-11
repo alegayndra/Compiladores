@@ -120,5 +120,29 @@ mod tests {
                 },
             ))
         );
+
+        assert_eq!(
+            expresion("aaa > aaa"),
+            Ok((
+                "",
+                EXPRESION {
+                    exp: "aaa",
+                    signo: Signos::GT,
+                    exp2: "aaa"
+                },
+            ))
+        );
+
+        assert_eq!(
+            expresion("aaa <> aaa"),
+            Ok((
+                "",
+                EXPRESION {
+                    exp: "aaa",
+                    signo: Signos::NE,
+                    exp2: "aaa"
+                },
+            ))
+        );
     }
 }
