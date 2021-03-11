@@ -6,6 +6,7 @@ use nom::{
     // error::{context, ErrorKind, VerboseError},
     error::{context, VerboseError},
     // multi::{count, many0, many1, many_m_n},
+    multi::many0,
     // sequence::{preceded, separated_pair, terminated, tuple},
     sequence::tuple,
     // AsChar, Err as NomErr, IResult, InputTakeAtPosition,
@@ -20,8 +21,13 @@ type Res<T, U> = IResult<T, U, VerboseError<T>>;
 #[derive(Debug, PartialEq, Eq)]
 pub struct EXP<'a> {
     pub termino: TERMINO<'a>,
+    pub exp2: Vec<EXP2<'a>>,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct EXP2<'a> {
     pub sumaresta: SumaResta,
-    pub termino2: &'a str,
+    pub termino: TERMINO<'a>,
 }
 
 pub fn exp(input: &str) -> Res<&str, EXP> {
@@ -29,20 +35,29 @@ pub fn exp(input: &str) -> Res<&str, EXP> {
         "exp",
         tuple((
             termino,
-            space,
-            sumaresta,
-            space,
-            url_code_points
+            many0(tuple((
+                space,
+                sumaresta,
+                space,
+                termino
+            )))
         )),
     )(input)
     .map(|(next_input, res)| {
-        let (termino, _, sumaresta, _, termino2) = res;
+        let termino = res.0;
+        let mut qps = Vec::new();
+        for qp in res.1 {
+            let (_, sumaresta, _, termino) = qp;
+            qps.push(EXP2 {
+                sumaresta,
+                termino,
+            });
+        }
         (
             next_input,
             EXP {
                 termino,
-                sumaresta,
-                termino2
+                exp2: qps
             },
         )
     })
@@ -68,8 +83,12 @@ mod tests {
                         multdiv: MultDiv::MULT,
                         factor2: "aaa"
                     },
-                    sumaresta: SumaResta::SUM,
-                    termino2: "aaa"
+                    exp2: vec![
+                        EXP2 {
+                            sumaresta: SumaResta::SUM,
+                            termino2: "aaa"
+                        }
+                    ] 
                 },
             ))
         );

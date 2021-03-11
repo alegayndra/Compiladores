@@ -3,10 +3,11 @@ use nom::{
     // bytes::complete::{tag, tag_no_case, take},
     bytes::complete::tag_no_case,
     // character::complete::{alpha1, alphanumeric1, one_of},
-    // combinator::opt,
+    combinator::opt,
     // error::{context, ErrorKind, VerboseError},
     error::{context, VerboseError},
     // multi::{count, many0, many1, many_m_n},
+    multi::many0,
     // sequence::{preceded, separated_pair, terminated, tuple},
     sequence::tuple,
     // AsChar, Err as NomErr, IResult, InputTakeAtPosition,
@@ -24,8 +25,8 @@ type Res<T, U> = IResult<T, U, VerboseError<T>>;
 #[derive(Debug, PartialEq, Eq)]
 pub struct EXPRESION<'a> {
     pub exp: EXP<'a>,
-    pub signo: Signos,
-    pub exp2: &'a str,
+    pub signo: Option<Signos>,
+    pub exp2: Option<EXP<'a>>
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -59,10 +60,10 @@ pub fn expresion(input: &str) -> Res<&str, EXPRESION> {
         "expresion",
         tuple((
             exp,
-            space,
-            signos,
-            space,
-            url_code_points
+            opt(space),
+            opt(signos),
+            opt(space),
+            opt(exp)
         )),
     )(input)
     .map(|(next_input, res)| {
@@ -121,8 +122,12 @@ mod tests {
                         sumaresta: SumaResta::SUM,
                         termino2: "aaaa",
                     },
-                    signo: Signos::LT,
-                    exp2: "aaa"
+                    expresion2: vec![
+                        EXPRESION2 {
+                            signo: Signos::LT,
+                            exp: "aaa"
+                        }
+                    ]
                 },
             ))
         );
@@ -141,8 +146,12 @@ mod tests {
                         sumaresta: SumaResta::SUM,
                         termino2: "aaaa",
                     },
-                    signo: Signos::GT,
-                    exp2: "aaa"
+                    expresion2: vec![
+                        EXPRESION2 {
+                            signo: Signos::GT,
+                            exp: "aaa"
+                        }
+                    ]
                 },
             ))
         );
@@ -161,8 +170,15 @@ mod tests {
                         sumaresta: SumaResta::SUB,
                         termino2: "aaaa",
                     },
-                    signo: Signos::NE,
-                    exp2: "aaa"
+                    expresion2: vec![
+                        EXPRESION2 {
+                            signo: Signos::NE,
+                            exp: "aaa"
+                            exp: EXP {
+
+                            }
+                        }
+                    ]
                 },
             ))
         );

@@ -6,6 +6,7 @@ use nom::{
     // error::{context, ErrorKind, VerboseError},
     error::{context, VerboseError},
     // multi::{count, many0, many1, many_m_n},
+    multi::many0,
     // sequence::{preceded, separated_pair, terminated, tuple},
     sequence::tuple,
     // AsChar, Err as NomErr, IResult, InputTakeAtPosition,
@@ -13,38 +14,50 @@ use nom::{
 };
 
 use crate::lexer::*;
-
-// // use lex::*;
-// // mod lex;
+use crate::parser::factor::*;
 
 type Res<T, U> = IResult<T, U, VerboseError<T>>;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct TERMINO<'a> {
-    pub factor: &'a str,
+    pub factor: FACTOR<'a>,
+    pub termino2: Vec<TERMINO2<'a>>,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct TERMINO2<'a> {
     pub multdiv: MultDiv,
-    pub factor2: &'a str,
+    pub factor: FACTOR<'a>,
 }
 
 pub fn termino(input: &str) -> Res<&str, TERMINO> {
     context(
         "termino",
         tuple((
-            url_code_points,
-            space,
-            multdiv,
-            space,
-            url_code_points
+            factor,
+            many0(tuple((
+                space,
+                multdiv,
+                space,
+                factor
+            )))
         )),
     )(input)
     .map(|(next_input, res)| {
-        let (factor, _, multdiv, _, factor2) = res;
+        let factor = res.0;
+        let mut qps = Vec::new();
+        for qp in res.1 {
+            let (_, multdiv, _, factor) = qp;
+            qps.push(TERMINO2 {
+                multdiv,
+                factor,
+            });
+        }
         (
             next_input,
             TERMINO {
                 factor,
-                multdiv,
-                factor2
+                termino2: qps
             },
         )
     })

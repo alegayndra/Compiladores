@@ -83,7 +83,7 @@ fn factor2(input: &str) -> Res<&str, FACTOR> {
     })
 }
 
-fn factor(input: &str) -> Res<&str, FACTOR> {
+pub fn factor(input: &str) -> Res<&str, FACTOR> {
     context("factor", alt((factor1, factor2)))(input)
 }
 
