@@ -25,7 +25,6 @@ pub struct PROGRAMA<'a> {
     id: &'a str,
     semicolon: &'a str,
     vars: Option<VARS<'a>>,
-    // bloque: &'a str,
     bloque: BLOQUE<'a>,
 }
 
