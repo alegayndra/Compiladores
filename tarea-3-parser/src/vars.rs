@@ -9,16 +9,16 @@ use nom::{
     AsChar, Err as NomErr, IResult, InputTakeAtPosition,
 };
 
-pub mod vars;
-
-use tarea_3_parser::*;
+// use lex::*;
+mod lex;
+// use lexer::*;
 
 type Res<T, U> = IResult<T, U, VerboseError<T>>;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct VARS<'a> {
     varter: &'a str,
-    ids: &'a str,
+    ids: Vec<&'a str>,
     colon: &'a str,
     tipo: Tipo,
     semicolon: &'a str,
@@ -56,14 +56,6 @@ fn varter(input: &str) -> Res<&str, &str> {
     .map(|(next_input, res)| (next_input, res.into()))
 }
 
-fn ids(input: &str) -> Res<&str, &str> {
-    context(
-        "ids",
-        tag_no_case("id"),
-    )(input)
-    .map(|(next_input, res)| (next_input, res.into()))
-}
-
 pub fn vars(input: &str) -> Res<&str, VARS> {
     context(
         "vars",
@@ -92,6 +84,37 @@ pub fn vars(input: &str) -> Res<&str, VARS> {
             },
         )
     })
+}
+
+fn ids(input: &str) -> Res<&str, Vec<&'a str>> {
+    context(
+        "ids",
+        tuple((
+            url_code_points,
+            many0(tuple((
+                tag(","),
+                url_code_points,
+            ))),
+        )),
+    )(input)
+    .map(|(next_input, res)| {
+        let mut qps = Vec::new();
+        qps.push(res.0);
+        for qp in res.1 {
+            qps.push(qp.1);
+        }
+        (next_input, qps)
+    })
+}
+
+fn url_code_points(input: &str) -> Res<&str, &str> {
+    input.split_at_position1_complete(
+        |item| {
+            let char_item = item.as_char();
+            !(char_item == '-') && !char_item.is_alphanum() && !(char_item == '.')
+        },
+        ErrorKind::AlphaNumeric,
+    )
 }
 
 #[cfg(test)]
@@ -139,55 +162,14 @@ mod tests {
 
     #[test]
     fn test_ids() {
-        assert_eq!(ids("id"), Ok(("", "id")));
+        assert_eq!(ids("id"), Ok(("", vec!["id"])));
+        assert_eq!(ids("id, id"), Ok(("", vec!["id", "id"])));
         assert_eq!(
-            ids("a"),
+            ids(":"),
             Err(NomErr::Error(VerboseError {
                 errors: vec![
-                    ("a", VerboseErrorKind::Nom(ErrorKind::Tag)),
-                    ("a", VerboseErrorKind::Context("ids")),
-                ]
-            }))
-        );
-    }
-
-    #[test]
-    fn test_colon() {
-        assert_eq!(colon(":"), Ok(("", ":")));
-        assert_eq!(
-            colon("a"),
-            Err(NomErr::Error(VerboseError {
-                errors: vec![
-                    ("a", VerboseErrorKind::Nom(ErrorKind::Tag)),
-                    ("a", VerboseErrorKind::Context("colon")),
-                ]
-            }))
-        );
-    }
-
-    #[test]
-    fn test_semicolon() {
-        assert_eq!(semicolon(";"), Ok(("", ";")));
-        assert_eq!(
-            semicolon("a"),
-            Err(NomErr::Error(VerboseError {
-                errors: vec![
-                    ("a", VerboseErrorKind::Nom(ErrorKind::Tag)),
-                    ("a", VerboseErrorKind::Context("semicolon")),
-                ]
-            }))
-        );
-    }
-
-    #[test]
-    fn test_space() {
-        assert_eq!(space(" "), Ok(("", " ")));
-        assert_eq!(
-            space("a"),
-            Err(NomErr::Error(VerboseError {
-                errors: vec![
-                    ("a", VerboseErrorKind::Nom(ErrorKind::Tag)),
-                    ("a", VerboseErrorKind::Context("space")),
+                    (":", VerboseErrorKind::Nom(ErrorKind::Tag)),
+                    (":", VerboseErrorKind::Context("ids")),
                 ]
             }))
         );
@@ -201,7 +183,7 @@ mod tests {
                 "",
                 VARS {
                     varter: "var",
-                    ids: "id",
+                    ids: vec!["id"],
                     colon: ":",
                     tipo: Tipo::INT,
                     semicolon: ";",
