@@ -69,11 +69,6 @@ pub fn program(input: &str) -> Res<&str, PROGRAMA> {
 
 #[cfg(test)]
 mod tests {
-    // #[test]
-    // fn is_working() {
-    //     assert_eq!(2+2, 4);
-    // }
-
     use super::*;
     // use nom::{
     //     error::{ErrorKind, VerboseError, VerboseErrorKind},

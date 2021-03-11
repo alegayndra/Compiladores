@@ -14,6 +14,7 @@ use nom::{
 };
 
 use crate::lexer::*;
+use crate::parser::exp::*;
 
 // // use lex::*;
 // // mod lex;
@@ -22,7 +23,7 @@ type Res<T, U> = IResult<T, U, VerboseError<T>>;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct EXPRESION<'a> {
-    pub exp: &'a str,
+    pub exp: EXP<'a>,
     pub signo: Signos,
     pub exp2: &'a str,
 }
@@ -57,7 +58,7 @@ pub fn expresion(input: &str) -> Res<&str, EXPRESION> {
     context(
         "expresion",
         tuple((
-            url_code_points,
+            exp,
             space,
             signos,
             space,
@@ -110,11 +111,15 @@ mod tests {
     #[test]
     fn test_expresion() {
         assert_eq!(
-            expresion("aaa < aaa"),
+            expresion("aaa + aaaa < aaa"),
             Ok((
                 "",
                 EXPRESION {
-                    exp: "aaa",
+                    exp: EXP {
+                        termino: "aaa",
+                        sumaresta: SumaResta::SUM,
+                        termino2: "aaaa",
+                    },
                     signo: Signos::LT,
                     exp2: "aaa"
                 },
@@ -122,11 +127,15 @@ mod tests {
         );
 
         assert_eq!(
-            expresion("aaa > aaa"),
+            expresion("aaa + aaaa > aaa"),
             Ok((
                 "",
                 EXPRESION {
-                    exp: "aaa",
+                    exp: EXP {
+                        termino: "aaa",
+                        sumaresta: SumaResta::SUM,
+                        termino2: "aaaa",
+                    },
                     signo: Signos::GT,
                     exp2: "aaa"
                 },
@@ -134,11 +143,15 @@ mod tests {
         );
 
         assert_eq!(
-            expresion("aaa <> aaa"),
+            expresion("aaa - aaaa <> aaa"),
             Ok((
                 "",
                 EXPRESION {
-                    exp: "aaa",
+                    exp: EXP {
+                        termino: "aaa",
+                        sumaresta: SumaResta::SUB,
+                        termino2: "aaaa",
+                    },
                     signo: Signos::NE,
                     exp2: "aaa"
                 },
