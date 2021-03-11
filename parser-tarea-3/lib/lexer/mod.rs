@@ -1,5 +1,5 @@
 use nom::{
-    // branch::alt,
+    branch::alt,
     // bytes::complete::{tag, tag_no_case, take, take_while},
     bytes::complete::{tag, tag_no_case, take_while},
     // character::complete::{alpha1, alphanumeric1, one_of},
@@ -14,6 +14,54 @@ use nom::{
 };
 
 type Res<T, U> = IResult<T, U, VerboseError<T>>;
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum SumaResta {
+    SUM,
+    SUB
+}
+
+impl From<&str> for SumaResta {
+    fn from(i: &str) -> Self {
+        match i.to_lowercase().as_str() {
+            "+" => SumaResta::SUM,
+            "-" => SumaResta::SUB,
+            _ => unimplemented!("no other schemes supported"),
+        }
+    }
+}
+
+pub fn sumaresta(input: &str) -> Res<&str, SumaResta> {
+    context(
+        "sumaresta",
+        alt((tag_no_case("+"), tag_no_case("-"))),
+    )(input)
+    .map(|(next_input, res)| (next_input, res.into()))
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum MultDiv {
+    MULT,
+    DIV
+}
+
+impl From<&str> for MultDiv {
+    fn from(i: &str) -> Self {
+        match i.to_lowercase().as_str() {
+            "*" => MultDiv::MULT,
+            "/" => MultDiv::DIV,
+            _ => unimplemented!("no other schemes supported"),
+        }
+    }
+}
+
+pub fn multdiv(input: &str) -> Res<&str, MultDiv> {
+    context(
+        "multdiv",
+        alt((tag_no_case("*"), tag_no_case("/"))),
+    )(input)
+    .map(|(next_input, res)| (next_input, res.into()))
+}
 
 pub fn colon(input: &str) -> Res<&str, &str> {
     context(
@@ -103,6 +151,38 @@ mod tests {
         error::{ErrorKind, VerboseError, VerboseErrorKind},
         Err as NomErr,
     };
+
+    #[test]
+    fn test_multdiv() {
+        assert_eq!(multdiv("*"), Ok(("", MultDiv::MULT)));
+        assert_eq!(multdiv("/"), Ok(("", MultDiv::DIV)));
+        assert_eq!(
+            multdiv("laksl"),
+            Err(NomErr::Error(VerboseError {
+                errors: vec![
+                    ("laksl", VerboseErrorKind::Nom(ErrorKind::Tag)),
+                    ("laksl", VerboseErrorKind::Nom(ErrorKind::Alt)),
+                    ("laksl", VerboseErrorKind::Context("multdiv")),
+                ]
+            }))
+        );
+    }
+
+    #[test]
+    fn test_sumaresta() {
+        assert_eq!(sumaresta("+"), Ok(("", SumaResta::SUM)));
+        assert_eq!(sumaresta("-"), Ok(("", SumaResta::SUB)));
+        assert_eq!(
+            sumaresta("laksl"),
+            Err(NomErr::Error(VerboseError {
+                errors: vec![
+                    ("laksl", VerboseErrorKind::Nom(ErrorKind::Tag)),
+                    ("laksl", VerboseErrorKind::Nom(ErrorKind::Alt)),
+                    ("laksl", VerboseErrorKind::Context("sumaresta")),
+                ]
+            }))
+        );
+    }
 
     #[test]
     fn test_colon() {

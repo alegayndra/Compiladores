@@ -15,7 +15,6 @@ use nom::{
 
 use crate::lexer::*;
 use crate::parser::exp::*;
-use crate::parser::termino::*;
 
 // // use lex::*;
 // // mod lex;
@@ -81,16 +80,13 @@ pub fn expresion(input: &str) -> Res<&str, EXPRESION> {
 
 #[cfg(test)]
 mod tests {
-    // #[test]
-    // fn is_working() {
-    //     assert_eq!(2+2, 4);
-    // }
-
     use super::*;
     use nom::{
         error::{ErrorKind, VerboseError, VerboseErrorKind},
         Err as NomErr,
     };
+
+    use crate::parser::termino::*;
 
     #[test]
     fn test_signos() {
