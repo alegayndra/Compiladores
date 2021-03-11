@@ -122,6 +122,21 @@ mod tests {
         );
     }
 
+    fn test_factor2() {
+        assert_eq!(
+            factor2("+ aaa"),
+            Ok((
+                "",
+                FACTOR2 {
+                    sumaresta: SumaResta::SUM,
+                    varcte: VARCTE {
+                        constante: "aaa"
+                    }
+                }
+            ))
+        );
+    }
+
     // #[test]
     // fn test_expresion() {
     //     assert_eq!(
