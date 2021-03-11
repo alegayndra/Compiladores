@@ -19,12 +19,11 @@ use crate::parser::varcte::*;
 
 type Res<T, U> = IResult<T, U, VerboseError<T>>;
 
-// #[derive(Debug, PartialEq, Eq)]
-// pub struct FACTOR<'a> {
-//     pub exp: EXP<'a>,
-//     pub signo: Signos,
-//     pub exp2: &'a str,
-// }
+#[derive(Debug, PartialEq, Eq)]
+pub enum FACTOR<'a> {
+    FACTOR1(FACTOR1<'a>),
+    FACTOR2(FACTOR2<'a>),
+}
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct FACTOR1<'a> {
@@ -39,7 +38,7 @@ pub struct FACTOR2<'a> {
     pub varcte: VARCTE<'a>,
 }
 
-fn factor1(input: &str) -> Res<&str, FACTOR1> {
+fn factor1(input: &str) -> Res<&str, FACTOR> {
     context(
         "factor1",
         tuple((
@@ -54,16 +53,16 @@ fn factor1(input: &str) -> Res<&str, FACTOR1> {
         let (abrirllave, _, expresion, _, cerrarllave) = res;
         (
             next_input,
-            FACTOR1 {
+            FACTOR::FACTOR1(FACTOR1{
                 abrirllave,
                 expresion,
                 cerrarllave,
-            },
+            }),
         )
     })
 }
 
-fn factor2(input: &str) -> Res<&str, FACTOR2> {
+fn factor2(input: &str) -> Res<&str, FACTOR> {
     context(
         "factor2",
         tuple((
@@ -76,12 +75,16 @@ fn factor2(input: &str) -> Res<&str, FACTOR2> {
         let (sumaresta, _, varcte) = res;
         (
             next_input,
-            FACTOR2 {
+            FACTOR::FACTOR2(FACTOR2{
                 sumaresta,
                 varcte
-            },
+            }),
         )
     })
+}
+
+fn factor(input: &str) -> Res<&str, FACTOR> {
+    context("factor", alt((factor1, factor2)))(input)
 }
 
 #[cfg(test)]
@@ -101,38 +104,87 @@ mod tests {
             factor1("{ aaa * aaa + aaaa < aaa }"),
             Ok((
                 "",
-                FACTOR1 {
-                    abrirllave: "{",
-                    expresion: EXPRESION {
-                        exp: EXP {
-                            termino: TERMINO {
-                                factor: "aaa",
-                                multdiv: MultDiv::MULT,
-                                factor2: "aaa"
+                FACTOR::FACTOR1(
+                    FACTOR1 {
+                        abrirllave: "{",
+                        expresion: EXPRESION {
+                            exp: EXP {
+                                termino: TERMINO {
+                                    factor: "aaa",
+                                    multdiv: MultDiv::MULT,
+                                    factor2: "aaa"
+                                },
+                                sumaresta: SumaResta::SUM,
+                                termino2: "aaaa",
                             },
-                            sumaresta: SumaResta::SUM,
-                            termino2: "aaaa",
+                            signo: Signos::LT,
+                            exp2: "aaa"
                         },
-                        signo: Signos::LT,
-                        exp2: "aaa"
-                    },
-                    cerrarllave: "}"
-                }
+                        cerrarllave: "}"
+                    }
+                )
             ))
         );
     }
 
+    #[test]
     fn test_factor2() {
         assert_eq!(
             factor2("+ aaa"),
             Ok((
                 "",
-                FACTOR2 {
-                    sumaresta: SumaResta::SUM,
-                    varcte: VARCTE {
-                        constante: "aaa"
+                FACTOR::FACTOR2(
+                    FACTOR2 {
+                        sumaresta: SumaResta::SUM,
+                        varcte: VARCTE {
+                            constante: "aaa"
+                        }
                     }
-                }
+                )
+            ))
+        );
+    }
+
+    #[test]
+    fn test_factor() {
+        assert_eq!(
+            factor("+ aaa"),
+            Ok((
+                "",
+                FACTOR::FACTOR2(
+                    FACTOR2 {
+                        sumaresta: SumaResta::SUM,
+                        varcte: VARCTE {
+                            constante: "aaa"
+                        }
+                    }
+                )
+            ))
+        );
+
+        assert_eq!(
+            factor1("{ aaa * aaa + aaaa < aaa }"),
+            Ok((
+                "",
+                FACTOR::FACTOR1(
+                    FACTOR1 {
+                        abrirllave: "{",
+                        expresion: EXPRESION {
+                            exp: EXP {
+                                termino: TERMINO {
+                                    factor: "aaa",
+                                    multdiv: MultDiv::MULT,
+                                    factor2: "aaa"
+                                },
+                                sumaresta: SumaResta::SUM,
+                                termino2: "aaaa",
+                            },
+                            signo: Signos::LT,
+                            exp2: "aaa"
+                        },
+                        cerrarllave: "}"
+                    }
+                )
             ))
         );
     }
