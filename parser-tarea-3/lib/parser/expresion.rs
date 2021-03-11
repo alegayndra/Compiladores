@@ -15,6 +15,7 @@ use nom::{
 
 use crate::lexer::*;
 use crate::parser::exp::*;
+use crate::parser::termino::*;
 
 // // use lex::*;
 // // mod lex;
@@ -111,12 +112,16 @@ mod tests {
     #[test]
     fn test_expresion() {
         assert_eq!(
-            expresion("aaa + aaaa < aaa"),
+            expresion("aaa * aaa + aaaa < aaa"),
             Ok((
                 "",
                 EXPRESION {
                     exp: EXP {
-                        termino: "aaa",
+                        termino: TERMINO {
+                            factor: "aaa",
+                            multdiv: MultDiv::MULT,
+                            factor2: "aaa"
+                        },
                         sumaresta: SumaResta::SUM,
                         termino2: "aaaa",
                     },
@@ -127,12 +132,16 @@ mod tests {
         );
 
         assert_eq!(
-            expresion("aaa + aaaa > aaa"),
+            expresion("aaa * aaa + aaaa > aaa"),
             Ok((
                 "",
                 EXPRESION {
                     exp: EXP {
-                        termino: "aaa",
+                        termino: TERMINO {
+                            factor: "aaa",
+                            multdiv: MultDiv::MULT,
+                            factor2: "aaa"
+                        },
                         sumaresta: SumaResta::SUM,
                         termino2: "aaaa",
                     },
@@ -143,12 +152,16 @@ mod tests {
         );
 
         assert_eq!(
-            expresion("aaa - aaaa <> aaa"),
+            expresion("aaa * aaa - aaaa <> aaa"),
             Ok((
                 "",
                 EXPRESION {
                     exp: EXP {
-                        termino: "aaa",
+                        termino: TERMINO {
+                            factor: "aaa",
+                            multdiv: MultDiv::MULT,
+                            factor2: "aaa"
+                        },
                         sumaresta: SumaResta::SUB,
                         termino2: "aaaa",
                     },

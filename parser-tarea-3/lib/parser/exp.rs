@@ -14,15 +14,13 @@ use nom::{
 };
 
 use crate::lexer::*;
-
-// // use lex::*;
-// // mod lex;
+use crate::parser::termino::*;
 
 type Res<T, U> = IResult<T, U, VerboseError<T>>;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct EXP<'a> {
-    pub termino: &'a str,
+    pub termino: TERMINO<'a>,
     pub sumaresta: SumaResta,
     pub termino2: &'a str,
 }
@@ -55,7 +53,7 @@ pub fn exp(input: &str) -> Res<&str, EXP> {
     context(
         "exp",
         tuple((
-            url_code_points,
+            termino,
             space,
             sumaresta,
             space,
@@ -102,11 +100,15 @@ mod tests {
     #[test]
     fn test_exp() {
         assert_eq!(
-            exp("aaa + aaa"),
+            exp("aaa * aaa + aaa"),
             Ok((
                 "",
                 EXP {
-                    termino: "aaa",
+                    termino: TERMINO {
+                        factor: "aaa",
+                        multdiv: MultDiv::MULT,
+                        factor2: "aaa"
+                    },
                     sumaresta: SumaResta::SUM,
                     termino2: "aaa"
                 },
@@ -114,11 +116,15 @@ mod tests {
         );
 
         assert_eq!(
-            exp("aaa - aaa"),
+            exp("aaa * aaa - aaa"),
             Ok((
                 "",
                 EXP {
-                    termino: "aaa",
+                    termino: TERMINO {
+                        factor: "aaa",
+                        multdiv: MultDiv::MULT,
+                        factor2: "aaa"
+                    },
                     sumaresta: SumaResta::SUB,
                     termino2: "aaa"
                 },
